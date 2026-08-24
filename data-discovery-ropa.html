@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Discovery — ROPA Register</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap');
+
+:root{
+  --ink:#1b2430;
+  --ink-soft:#5a6472;
+  --paper:#f3f1ec;
+  --panel:#ffffff;
+  --line:#dcd8cf;
+  --navy:#1e3a4c;
+  --navy-deep:#142a37;
+  --teal:#3c7a72;
+  --teal-soft:#e4efec;
+  --amber:#b3792c;
+  --amber-soft:#f6ecdc;
+  --rose:#a3403f;
+  --rose-soft:#f5e6e3;
+  --slate:#5b6773;
+  --slate-soft:#e9edf0;
+  --gold:#8a6a1f;
+  --gold-soft:#f2e9d3;
+  --focus:#3c7a72;
+  --shadow:0 1px 2px rgba(20,42,55,.04), 0 6px 16px rgba(20,42,55,.06);
+  --shadow-lift:0 4px 10px rgba(20,42,55,.07), 0 14px 30px rgba(20,42,55,.09);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'IBM Plex Sans', sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--teal-soft);}
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, [tabindex]:focus-visible{
+  outline:2px solid var(--focus);outline-offset:2px;
+}
+
+/* top classification strip — doubles as legend for Umum/Internal/Spesifik/Rahasia */
+.klas-strip{position:fixed;top:0;left:0;right:0;height:4px;display:flex;z-index:50;}
+.klas-strip span{flex:1;}
+.klas-strip .s1{background:var(--slate);}
+.klas-strip .s2{background:var(--teal);}
+.klas-strip .s3{background:var(--amber);}
+.klas-strip .s4{background:var(--rose);}
+
+.wrap{max-width:1180px;margin:0 auto;padding:44px 24px 80px;}
+
+/* ---------- LOGIN SCREEN ---------- */
+.login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--paper);
+  background-image:radial-gradient(circle at 1px 1px, rgba(30,58,76,.06) 1px, transparent 0);
+  background-size:22px 22px;
+  padding:24px;
+}
+.login-card{
+  width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);
+  border-radius:6px;box-shadow:var(--shadow-lift);padding:36px 32px 28px;position:relative;
+}
+.login-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:22px;}
+.login-eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--teal);margin:0 0 6px;
+}
+.login-title{font-family:'Fraunces',serif;font-size:24px;font-weight:600;margin:0;color:var(--navy-deep);line-height:1.2;}
+.login-sub{font-size:12.5px;color:var(--ink-soft);margin:8px 0 0;line-height:1.5;}
+.seal{
+  flex:0 0 auto;width:58px;height:58px;border-radius:50%;
+  border:1.5px dashed var(--navy);display:flex;align-items:center;justify-content:center;
+  transform:rotate(-8deg);
+}
+.seal-inner{
+  width:44px;height:44px;border-radius:50%;border:1px solid var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:'IBM Plex Mono',monospace;color:var(--navy);text-align:center;line-height:1.05;
+}
+.seal-inner .l1{font-size:7px;letter-spacing:.05em;font-weight:600;}
+.seal-inner .l2{font-size:9px;font-weight:700;}
+.login-field{margin-bottom:14px;}
+.login-field label{
+  display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;
+}
+.login-error{
+  display:none;background:var(--rose-soft);border:1px solid var(--rose);color:var(--rose);
+  font-size:12.5px;padding:9px 12px;border-radius:3px;margin-bottom:14px;line-height:1.4;
+}
+.login-submit{width:100%;margin-top:6px;padding:11px 16px;}
+.login-demo{
+  margin-top:20px;padding-top:16px;border-top:1px dashed var(--line);
+  font-size:11.5px;color:var(--ink-soft);line-height:1.7;
+}
+.login-demo summary{cursor:pointer;font-weight:600;color:var(--navy);list-style:none;display:flex;align-items:center;gap:6px;}
+.login-demo summary::-webkit-details-marker{display:none;}
+.login-demo summary::before{content:'▸';font-size:10px;transition:transform .15s;}
+.login-demo[open] summary::before{transform:rotate(90deg);}
+.login-demo table{width:100%;margin-top:10px;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;}
+.login-demo td{padding:4px 6px;border-bottom:1px solid var(--line);font-size:11px;}
+.login-demo .badge-mini{
+  font-size:9.5px;padding:1px 7px;border-radius:10px;text-transform:uppercase;letter-spacing:.03em;font-weight:600;
+}
+.login-footnote{text-align:center;margin-top:18px;font-size:10.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+
+/* ---------- APP TOPBAR ---------- */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  background:var(--navy-deep);color:#eef3f2;padding:11px 24px;flex-wrap:wrap;
+}
+.topbar-left{display:flex;align-items:center;gap:10px;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+.topbar-left .divider{opacity:.35;}
+.topbar-user{font-weight:600;}
+.role-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;padding:3px 9px;
+  border-radius:20px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;
+}
+.role-badge.role-admin{background:var(--teal-soft);color:var(--teal);}
+.role-badge.role-superadmin{background:var(--gold-soft);color:var(--gold);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.btn-logout{
+  background:transparent;border:1px solid rgba(238,243,242,.35);color:#eef3f2;
+  padding:7px 13px;font-size:12px;
+}
+.btn-logout:hover{background:rgba(238,243,242,.1);}
+
+/* header */
+.masthead{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2px solid var(--navy);
+  padding-bottom:18px;margin-bottom:22px;flex-wrap:wrap;gap:16px;
+}
+.masthead-titles{display:flex;align-items:flex-start;gap:16px;}
+.masthead .eyebrow{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--teal);margin:0 0 6px;
+}
+.masthead h1{margin:0;font-family:'Fraunces',serif;font-size:30px;font-weight:600;letter-spacing:-0.01em;color:var(--navy-deep);}
+.masthead .sub{color:var(--ink-soft);font-size:13.5px;margin-top:6px;max-width:560px;line-height:1.5;}
+.status-pill{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+  background:var(--navy);color:#eef3f2;padding:7px 12px;border-radius:3px;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;height:fit-content;
+}
+.status-pill .dot{width:6px;height:6px;border-radius:50%;background:#7bc9a3;}
+.status-pill.saving .dot{background:#e0b45a;}
+
+.scope-note{
+  display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--navy-deep);
+  background:var(--teal-soft);border:1px solid var(--teal);border-radius:4px;
+  padding:10px 14px;margin-bottom:20px;line-height:1.5;
+}
+.scope-note.super{background:var(--gold-soft);border-color:var(--gold);}
+.scope-note b{font-weight:600;}
+
+/* user management */
+.usermgmt-toggle{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:13px 18px;margin-bottom:14px;
+}
+.usermgmt-toggle:hover{border-color:var(--gold);}
+.usermgmt-toggle .title{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--navy);text-transform:uppercase;letter-spacing:.04em;}
+.usermgmt-toggle .arrow{transition:transform .15s;color:var(--ink-soft);}
+.usermgmt-toggle.open .arrow{transform:rotate(90deg);}
+.usermgmt-panel{
+  display:none;background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:20px;margin-bottom:20px;
+}
+.usermgmt-panel.open{display:block;}
+.usermgmt-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;}
+@media (max-width:820px){.usermgmt-grid{grid-template-columns:1fr;}}
+.user-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.user-table th{
+  text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;
+  letter-spacing:.04em;color:var(--ink-soft);padding:0 8px 8px;border-bottom:1px solid var(--line);
+}
+.user-table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.user-table tr:last-child td{border-bottom:none;}
+.user-name{font-weight:600;}
+.user-uname{color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+.user-count{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);}
+.btn-icon-danger{
+  background:transparent;border:1px solid var(--line);color:var(--rose);
+  padding:4px 9px;font-size:11px;
+}
+.btn-icon-danger:hover{border-color:var(--rose);background:var(--rose-soft);}
+.btn-icon-danger:disabled{opacity:.35;cursor:not-allowed;}
+.add-user-form h3{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--navy);margin:0 0 12px;
+}
+
+/* layout */
+.grid{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;}
+@media (max-width:920px){.grid{grid-template-columns:1fr;}}
+
+/* form panel */
+.panel{
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:22px;position:sticky;top:20px;box-shadow:var(--shadow);
+}
+.panel h2{
+  font-size:13px;text-transform:uppercase;letter-spacing:.08em;
+  font-family:'IBM Plex Mono',monospace;color:var(--navy);margin:0 0 4px;
+}
+.panel .panel-note{font-size:12px;color:var(--ink-soft);margin:0 0 18px;line-height:1.5;}
+.field{margin-bottom:14px;}
+.field label{
+  display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);
+  margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;
+}
+.field .req{color:var(--rose);}
+input[type=text], input[type=password], textarea, select{
+  width:100%;border:1px solid var(--line);border-radius:3px;
+  padding:9px 10px;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;
+  background:#fbfaf7;color:var(--ink);resize:vertical;
+}
+textarea{min-height:52px;line-height:1.4;}
+input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus{
+  outline:2px solid var(--focus);outline-offset:1px;border-color:var(--focus);
+  background:#fff;
+}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
+  background-position:calc(100% - 16px) center, calc(100% - 11px) center;background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+
+.klas-checks{display:flex;flex-wrap:wrap;gap:8px;}
+.klas-check{
+  display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:500;
+  text-transform:none;letter-spacing:0;color:var(--ink);
+  border:1px solid var(--line);border-radius:20px;padding:6px 12px 6px 10px;
+  cursor:pointer;background:#fbfaf7;transition:border-color .12s,background .12s;
+}
+.klas-check:has(input:checked){border-color:var(--navy);background:var(--teal-soft);}
+.klas-check input{margin:0;accent-color:var(--navy);cursor:pointer;}
+
+.btn-row{display:flex;gap:8px;margin-top:18px;}
+button{
+  font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:13px;
+  border-radius:3px;border:1px solid transparent;padding:10px 16px;cursor:pointer;
+  transition:filter .12s ease, transform .05s ease;
+}
+button:hover{filter:brightness(0.94);}
+button:active{filter:brightness(0.88);transform:translateY(1px);}
+.btn-primary{background:var(--navy);color:#fff;flex:1;}
+.btn-ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy);}
+.btn-danger-outline{background:#fff;color:var(--rose);border-color:var(--rose);}
+.btn-gold{background:var(--gold);color:#fff;}
+
+/* toolbar */
+.toolbar{
+  display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;
+}
+.toolbar input[type=search]{
+  flex:1;min-width:180px;border:1px solid var(--line);border-radius:3px;
+  padding:9px 12px;font-size:13.5px;background:var(--panel);
+}
+.toolbar select{width:auto;min-width:160px;background:var(--panel);}
+.count-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);
+  white-space:nowrap;
+}
+.export-group{display:flex;gap:6px;margin-left:auto;}
+.export-group button{padding:9px 12px;font-size:12px;}
+.btn-excel{background:#fff;color:var(--teal);border:1px solid var(--teal);}
+.btn-excel:hover{background:var(--teal-soft);}
+
+/* cards list */
+.entries{display:flex;flex-direction:column;gap:10px;}
+.entry-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:16px 18px;cursor:pointer;position:relative;transition:border-color .12s, box-shadow .12s, transform .12s;
+}
+.entry-card:hover{border-color:var(--teal);box-shadow:var(--shadow);transform:translateY(-1px);}
+.entry-card.editing{border-color:var(--navy);box-shadow:0 0 0 1px var(--navy);}
+.entry-top{display:flex;justify-content:space-between;gap:12px;margin-bottom:8px;}
+.entry-titles{min-width:0;display:flex;gap:10px;align-items:flex-start;}
+.reg-no{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);
+  border:1px solid var(--line);border-radius:3px;padding:2px 6px;white-space:nowrap;margin-top:1px;
+}
+.entry-product{
+  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--teal);
+  text-transform:uppercase;letter-spacing:.05em;margin:0 0 3px;
+}
+.entry-process{font-size:15px;font-weight:600;margin:0;}
+.entry-owner{font-size:11px;color:var(--ink-soft);margin-top:3px;}
+.class-badge{
+  font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+  padding:3px 9px;border-radius:20px;white-space:nowrap;height:fit-content;
+  text-transform:uppercase;letter-spacing:.03em;
+}
+.class-Umum{background:var(--slate-soft);color:var(--slate);}
+.class-Internal{background:var(--teal-soft);color:var(--teal);}
+.class-Spesifik{background:var(--amber-soft);color:var(--amber);}
+.class-Rahasia{background:var(--rose-soft);color:var(--rose);}
+
+.entry-meta{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
+  gap:10px 18px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);
+}
+.meta-item .k{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);margin-bottom:2px;}
+.meta-item .v{font-size:12.5px;line-height:1.4;color:var(--ink);word-break:break-word;}
+.entry-full{margin-top:12px;padding-top:12px;border-top:1px dashed var(--line);display:none;}
+.entry-card.expanded .entry-full{display:block;}
+.entry-actions{display:flex;gap:8px;margin-top:12px;}
+.entry-actions button{padding:6px 12px;font-size:11.5px;}
+
+.empty-state{
+  text-align:center;padding:60px 20px;color:var(--ink-soft);
+  border:1px dashed var(--line);border-radius:4px;background:var(--panel);
+}
+.empty-state h3{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--navy);margin:0 0 6px;text-transform:uppercase;letter-spacing:.06em;}
+.empty-state p{font-size:13px;max-width:360px;margin:0 auto 16px;line-height:1.5;}
+
+.seed-banner{
+  background:var(--teal-soft);border:1px solid var(--teal);border-radius:4px;
+  padding:12px 16px;margin-bottom:16px;font-size:12.5px;color:var(--navy-deep);
+  display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.seed-banner button{background:var(--navy);color:#fff;padding:7px 12px;font-size:12px;}
+
+.footer-note{
+  margin-top:32px;font-size:11.5px;color:var(--ink-soft);
+  font-family:'IBM Plex Mono',monospace;text-align:center;line-height:1.7;
+}
+</style>
+</head>
+<body>
+
+<div class="klas-strip"><span class="s1"></span><span class="s2"></span><span class="s3"></span><span class="s4"></span></div>
+
+<!-- ================= LOGIN SCREEN ================= -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-top">
+      <div>
+        <p class="login-eyebrow">Data Governance / PDP Compliance</p>
+        <h1 class="login-title">Akses Register ROPA</h1>
+        <p class="login-sub">Masuk untuk mencatat &amp; meninjau Record of Processing Activities sesuai Pasal 20 UU PDP.</p>
+      </div>
+      <div class="seal"><div class="seal-inner"><span class="l1">REGISTER</span><span class="l2">PDP</span></div></div>
+    </div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <div class="login-field">
+      <label for="loginUser">Username</label>
+      <input type="text" id="loginUser" placeholder="mis. admin1" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label for="loginPass">Password</label>
+      <input type="password" id="loginPass" placeholder="Masukkan password" autocomplete="current-password">
+    </div>
+    <button class="btn-primary login-submit" id="loginBtn">Masuk</button>
+
+    <details class="login-demo">
+      <summary>Lihat akun demo</summary>
+      <table>
+        <tr><td>superadmin / super123</td><td><span class="badge-mini role-badge role-superadmin">Super Admin</span></td></tr>
+        <tr><td>admin1 / admin123</td><td><span class="badge-mini role-badge role-admin">Admin</span></td></tr>
+        <tr><td>admin2 / admin123</td><td><span class="badge-mini role-badge role-admin">Admin</span></td></tr>
+      </table>
+    </details>
+  </div>
+</div>
+<p class="login-footnote" id="loginFootnote" style="display:none;">Autentikasi berjalan sepenuhnya di sisi klien untuk keperluan internal/demo — bukan pengganti backend auth produksi.</p>
+
+<!-- ================= APP SCREEN ================= -->
+<div id="appScreen" style="display:none;">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <i>▣</i>
+      <span class="topbar-user" id="topbarUser"></span>
+      <span class="role-badge" id="topbarRole"></span>
+    </div>
+    <div class="topbar-right">
+      <button class="btn-logout" id="logoutBtn">Keluar</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="masthead">
+      <div class="masthead-titles">
+        <div>
+          <p class="eyebrow">Data Governance / PDP Compliance</p>
+          <h1>Data Discovery — ROPA Register</h1>
+          <p class="sub">Pencatatan Record of Processing Activities per produk &amp; proses bisnis, sesuai Pasal 20 UU PDP. Tersimpan permanen tanpa database eksternal.</p>
+        </div>
+      </div>
+      <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">Tersimpan</span></div>
+    </div>
+
+    <div class="scope-note" id="scopeNote"></div>
+
+    <!-- USER MANAGEMENT (super admin only) -->
+    <div id="usermgmtSection" style="display:none;">
+      <div class="usermgmt-toggle" id="usermgmtToggle">
+        <span class="title">Manajemen Pengguna &amp; Peran</span>
+        <span class="arrow">▸</span>
+      </div>
+      <div class="usermgmt-panel" id="usermgmtPanel">
+        <div class="usermgmt-grid">
+          <div>
+            <table class="user-table">
+              <thead><tr><th>Nama</th><th>Username</th><th>Peran</th><th>Entri</th><th></th></tr></thead>
+              <tbody id="userTableBody"></tbody>
+            </table>
+          </div>
+          <div class="add-user-form">
+            <h3>Tambah Pengguna</h3>
+            <div class="field">
+              <label>Nama Lengkap</label>
+              <input type="text" id="nu_name" placeholder="mis. Dewi Anggraini">
+            </div>
+            <div class="field">
+              <label>Username</label>
+              <input type="text" id="nu_username" placeholder="mis. admin3">
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input type="text" id="nu_password" placeholder="Password awal">
+            </div>
+            <div class="field">
+              <label>Peran</label>
+              <select id="nu_role">
+                <option value="admin">Admin</option>
+                <option value="superadmin">Super Admin</option>
+              </select>
+            </div>
+            <button class="btn-gold" id="addUserBtn" style="width:100%;">Tambah Pengguna</button>
+            <div class="login-error" id="addUserError" style="margin-top:12px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- FORM PANEL -->
+      <div class="panel">
+        <h2 id="formTitle">Entri Baru</h2>
+        <p class="panel-note" id="formNote">Isi satu proses bisnis per entri. Klik kartu di kanan untuk mengedit entri yang sudah ada.</p>
+
+        <div class="field">
+          <label>Produk / Layanan <span class="req">*</span></label>
+          <input type="text" id="f_produk" placeholder="mis. Odeva CXM">
+        </div>
+        <div class="field">
+          <label>Proses Bisnis (Tujuan) <span class="req">*</span></label>
+          <input type="text" id="f_proses" placeholder="mis. Analisis Sentimen Percakapan">
+        </div>
+        <div class="field">
+          <label>Kategori Subjek Data</label>
+          <select id="f_subjek">
+            <option value="">— Pilih —</option>
+            <option>Karyawan</option>
+            <option>Pelanggan (Customer)</option>
+            <option>Vendor</option>
+            <option>Pengguna Aplikasi (User)</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Jenis Data Pribadi</label>
+          <textarea id="f_jenis" placeholder="mis. Nama, No. WhatsApp, Isi Pesan, Skor Sentimen"></textarea>
+        </div>
+        <div class="field">
+          <label>Klasifikasi Data <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(boleh lebih dari satu)</span></label>
+          <div class="klas-checks" id="f_klasifikasi">
+            <label class="klas-check"><input type="checkbox" value="Umum"> Umum</label>
+            <label class="klas-check"><input type="checkbox" value="Internal"> Internal</label>
+            <label class="klas-check"><input type="checkbox" value="Spesifik"> Spesifik</label>
+            <label class="klas-check"><input type="checkbox" value="Rahasia"> Rahasia</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Sumber Data</label>
+          <textarea id="f_sumber" placeholder="Asal data — API, input manual, sensor, dll"></textarea>
+        </div>
+        <div class="field">
+          <label>Dasar Hukum Pemrosesan</label>
+          <textarea id="f_hukum" placeholder="mis. Persetujuan, Pelaksanaan Kontrak, Kewajiban Hukum"></textarea>
+        </div>
+        <div class="field">
+          <label>Penerima / Pihak Ketiga</label>
+          <textarea id="f_penerima" placeholder="Sub-prosesor, vendor, sistem internal terkait"></textarea>
+        </div>
+        <div class="field">
+          <label>Lokasi Penyimpanan</label>
+          <input type="text" id="f_lokasi" placeholder="mis. Cloud Data Center - Jakarta">
+        </div>
+        <div class="field">
+          <label>Retensi Data</label>
+          <input type="text" id="f_retensi" placeholder="mis. 2 Tahun sejak interaksi berakhir">
+        </div>
+        <div class="field">
+          <label>Alur Data / Flow Mapping</label>
+          <textarea id="f_alur" placeholder="Ringkas: Sumber -> Sistem -> Penyimpanan -> Output"></textarea>
+        </div>
+        <div class="field">
+          <label>Tindakan Keamanan</label>
+          <textarea id="f_keamanan" placeholder="mis. Enkripsi TLS, RBAC, Audit Log"></textarea>
+        </div>
+        <div class="field">
+          <label>PIC (Data Owner)</label>
+          <input type="text" id="f_pic" placeholder="mis. PIC Odeva CXM">
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" id="saveBtn">Simpan Entri</button>
+          <button class="btn-ghost" id="cancelBtn" style="display:none;">Batal</button>
+        </div>
+      </div>
+
+      <!-- LIST PANEL -->
+      <div>
+        <div class="seed-banner" id="seedBanner" style="display:none;">
+          <span>Belum ada data tersimpan. Muat 7 entri contoh dari Odeva CXM untuk mulai?</span>
+          <button id="seedBtn">Muat Data Contoh</button>
+        </div>
+
+        <div class="toolbar">
+          <input type="search" id="searchInput" placeholder="Cari produk, proses, PIC...">
+          <select id="filterProduk"><option value="">Semua Produk</option></select>
+          <select id="filterKlasifikasi">
+            <option value="">Semua Klasifikasi</option>
+            <option>Umum</option><option>Internal</option><option>Spesifik</option><option>Rahasia</option>
+          </select>
+          <select id="filterAdmin" style="display:none;"><option value="">Semua Admin</option></select>
+          <span class="count-badge" id="countBadge">0 entri</span>
+          <div class="export-group">
+            <button class="btn-excel" id="exportExcelBtn">Ekspor Excel</button>
+            <button class="btn-ghost" id="exportCsvBtn">Ekspor CSV</button>
+            <button class="btn-ghost" id="exportJsonBtn">Ekspor JSON</button>
+          </div>
+        </div>
+
+        <div class="entries" id="entriesList"></div>
+      </div>
+    </div>
+
+    <p class="footer-note">DATA DISCOVERY REGISTER · disimpan permanen di penyimpanan akun Anda · akses dipisah per peran (admin hanya melihat entrinya sendiri, super admin melihat seluruh register)</p>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script>
+const USERS_KEY = 'ropa-users';
+const ENTRIES_KEY = 'ropa-entries';
+const hasCloudStorage = typeof window.storage !== 'undefined' && window.storage !== null;
+
+let users = [];
+let entries = [];
+let currentUser = null;
+let editingId = null;
+
+async function storageGet(key, shared){
+  if(hasCloudStorage){
+    try{
+      const res = await window.storage.get(key, !!shared);
+      return res ? res.value : null;
+    }catch(e){ return null; }
+  }
+  return localStorage.getItem(key);
+}
+async function storageSet(key, value, shared){
+  if(hasCloudStorage){
+    await window.storage.set(key, value, !!shared);
+  } else {
+    localStorage.setItem(key, value);
+  }
+}
+
+const defaultUsers = [
+  {username:'superadmin', password:'super123', name:'Radja Pratama', role:'superadmin'},
+  {username:'admin1', password:'admin123', name:'Sinta Wulandari', role:'admin'},
+  {username:'admin2', password:'admin123', name:'Bimo Aditya', role:'admin'}
+];
+
+const seedData = [
+  {produk:"Odeva CXM",proses:"Analisis Sentimen Percakapan Pelanggan",subjek:"Pelanggan (Customer)",jenis:"Nama, No. WhatsApp, Isi Pesan/Chat, Skor & Label Sentimen",klasifikasi:["Rahasia"],sumber:"WhatsApp Business API (WABA) / WAHA",hukum:"Persetujuan & Kepentingan Sah (Ps. 20 UU PDP)",penerima:"Meta/WhatsApp Cloud API, Penyedia GPU Cloud (DigitalOcean) untuk training model AI",lokasi:"DigitalOcean Cloud - Singapore Region",retensi:"2 Tahun sejak percakapan berakhir",alur:"WhatsApp -> WAHA/BSP Gateway -> Sentiment Engine (NLP Model) -> Database CXM -> Dashboard",keamanan:"Enkripsi end-to-end (WA), TLS in-transit, Access Control berbasis role",pic:"PIC Odeva CXM", owner:'admin1'},
+  {produk:"Odeva CXM",proses:"Manajemen Percakapan (Conversation)",subjek:"Pengguna Aplikasi (User)",jenis:"Nama, No. HP/WA, Riwayat Chat, Lampiran Media",klasifikasi:["Rahasia"],sumber:"WhatsApp Business API, Web Chat Widget",hukum:"Pelaksanaan Kontrak (Layanan Pelanggan) & Persetujuan",penerima:"Agent CS Internal, Vendor BSP WhatsApp",lokasi:"Database Odeva CXM (Cloud - Jakarta/Singapore)",retensi:"3 Tahun untuk keperluan audit layanan",alur:"Customer -> WhatsApp/Web -> API Gateway -> Conversation DB -> Agent Dashboard",keamanan:"Enkripsi at-rest & in-transit, RBAC, Audit Log",pic:"PIC Odeva CXM", owner:'admin1'},
+  {produk:"Odeva CXM",proses:"SLA Management (Pemantauan Waktu Respons)",subjek:"Karyawan",jenis:"ID Tiket, Waktu Respons, Nama Agent, Nama Pelanggan",klasifikasi:["Internal"],sumber:"Sistem Ticketing Internal (auto-generate dari modul Conversation)",hukum:"Kepentingan Sah (Monitoring Kualitas Layanan)",penerima:"Manajemen Internal (Supervisor CS)",lokasi:"Database Odeva CXM",retensi:"1 Tahun untuk evaluasi kinerja",alur:"Conversation DB -> SLA Engine (Timer & Threshold Calculation) -> Reporting Dashboard",keamanan:"Access control per role, Backup berkala",pic:"PIC Odeva CXM", owner:'admin2'},
+  {produk:"Odeva CXM",proses:"CX Score (Skor Pengalaman Pelanggan)",subjek:"Pelanggan (Customer)",jenis:"Nama, Skor Interaksi, Riwayat Sentimen, Riwayat SLA",klasifikasi:["Rahasia"],sumber:"Hasil olahan Sentiment Engine, Modul SLA, dan CSAT/NPS",hukum:"Kepentingan Sah (Analisis Kualitas Layanan)",penerima:"Manajemen (BOD/Divisi CX)",lokasi:"Database Odeva CXM / Analytics Warehouse",retensi:"2 Tahun",alur:"Data Sentimen + SLA + CSAT -> Scoring Engine (Weighted Formula) -> CX Score Dashboard",keamanan:"Enkripsi at-rest, Anonimisasi pada laporan agregat",pic:"PIC Odeva CXM", owner:'admin1'},
+  {produk:"Odeva CXM",proses:"Early Warning System (Deteksi Dini Risiko)",subjek:"Pelanggan (Customer)",jenis:"Nama, No. WA, Pola Komplain, Sentimen Negatif Berulang",klasifikasi:["Rahasia"],sumber:"Sentiment Engine, Modul Complaint (trigger real-time)",hukum:"Kepentingan Sah (Mitigasi Risiko Churn/Eskalasi)",penerima:"Supervisor CS, Kanal Notifikasi Internal (Slack/Email/WA Alert)",lokasi:"Database Odeva CXM",retensi:"1 Tahun sejak alert diterbitkan",alur:"Data Sentimen/Complaint -> Rule/AI Detection Engine -> Notifikasi Alert -> Dashboard EWS",keamanan:"Enkripsi in-transit notifikasi, Access control ketat",pic:"PIC Odeva CXM", owner:'admin2'},
+  {produk:"Odeva CXM",proses:"Penanganan Komplain (Complaint Handling)",subjek:"Pelanggan (Customer)",jenis:"Nama, Kontak, Isi Komplain, Bukti Lampiran (foto/screenshot)",klasifikasi:["Rahasia"],sumber:"WhatsApp, Web Form, Call Center",hukum:"Pelaksanaan Kontrak & Kewajiban Hukum (Perlindungan Konsumen)",penerima:"Divisi terkait (CBD/CTE/CSP sesuai kasus), vendor terkait bila diperlukan",lokasi:"Database Odeva CXM",retensi:"5 Tahun (kebutuhan audit & hukum)",alur:"Customer -> Kanal (WA/Web/Call) -> Modul Complaint -> Assignment ke Divisi -> Resolution Log",keamanan:"Enkripsi at-rest, Akses terbatas berbasis role, Audit log",pic:"PIC Odeva CXM", owner:'admin2'},
+  {produk:"Odeva CXM",proses:"CSAT / NPS (Survei Kepuasan Pelanggan)",subjek:"Pelanggan (Customer)",jenis:"Nama, No. WA/Email, Skor Survei, Komentar/Feedback",klasifikasi:["Internal"],sumber:"Survei otomatis pasca-interaksi (WhatsApp/Email)",hukum:"Persetujuan (opt-in survei) & Kepentingan Sah",penerima:"Manajemen CX, Tim Produk",lokasi:"Database Odeva CXM",retensi:"2 Tahun untuk analisis tren",alur:"Trigger pasca-chat -> Survey Engine -> Response Collector -> Analytics Dashboard",keamanan:"Enkripsi at-rest, Anonimisasi pada laporan agregat",pic:"PIC Odeva CXM", owner:'admin1'}
+];
+
+const fields = ['produk','proses','subjek','jenis','klasifikasi','sumber','hukum','penerima','lokasi','retensi','alur','keamanan','pic'];
+const fieldLabels = {
+  subjek:'Kategori Subjek', jenis:'Jenis Data Pribadi', sumber:'Sumber Data', hukum:'Dasar Hukum',
+  penerima:'Penerima / Pihak Ketiga', lokasi:'Lokasi Penyimpanan', retensi:'Retensi',
+  alur:'Alur Data', keamanan:'Tindakan Keamanan', pic:'PIC'
+};
+
+/* ---------- USERS / AUTH ---------- */
+async function loadUsers(){
+  try{
+    const raw = await storageGet(USERS_KEY, true);
+    users = raw ? JSON.parse(raw) : [];
+  }catch(e){ users = []; }
+  if(users.length === 0){
+    users = defaultUsers.slice();
+    await persistUsers();
+  }
+}
+async function persistUsers(){
+  await storageSet(USERS_KEY, JSON.stringify(users), true);
+}
+function getUserName(username){
+  const u = users.find(x => x.username === username);
+  return u ? u.name : username;
+}
+function escapeHtml(s){
+  return (s||'').toString().replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+async function attemptLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  if(!u || !p){
+    errEl.textContent = 'Username dan password wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+  const found = users.find(x => x.username === u && x.password === p);
+  if(!found){
+    errEl.textContent = 'Username atau password salah.';
+    errEl.style.display = 'block';
+    return;
+  }
+  errEl.style.display = 'none';
+  currentUser = {username: found.username, name: found.name, role: found.role};
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('loginFootnote').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  await initAppForUser();
+}
+
+function logout(){
+  currentUser = null;
+  editingId = null;
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('loginFootnote').style.display = 'block';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+async function initAppForUser(){
+  document.getElementById('topbarUser').textContent = currentUser.name + ' (' + currentUser.username + ')';
+  const roleEl = document.getElementById('topbarRole');
+  roleEl.textContent = currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin';
+  roleEl.className = 'role-badge ' + (currentUser.role === 'superadmin' ? 'role-superadmin' : 'role-admin');
+
+  const scopeEl = document.getElementById('scopeNote');
+  if(currentUser.role === 'superadmin'){
+    scopeEl.className = 'scope-note super';
+    scopeEl.innerHTML = '<span>◆</span><span>Anda masuk sebagai <b>Super Admin</b> — dapat melihat dan mengelola entri dari <b>seluruh admin</b> di register ini.</span>';
+    document.getElementById('usermgmtSection').style.display = 'block';
+    document.getElementById('filterAdmin').style.display = '';
+  } else {
+    scopeEl.className = 'scope-note';
+    scopeEl.innerHTML = '<span>◆</span><span>Anda masuk sebagai <b>Admin</b> — hanya entri yang <b>Anda buat sendiri</b> yang ditampilkan. Admin lain tidak dapat melihat data Anda.</span>';
+    document.getElementById('usermgmtSection').style.display = 'none';
+    document.getElementById('filterAdmin').style.display = 'none';
+  }
+  renderUserTable();
+  await loadEntries();
+}
+
+/* ---------- USER MANAGEMENT ---------- */
+function renderUserTable(){
+  const body = document.getElementById('userTableBody');
+  body.innerHTML = users.map(u => {
+    const count = entries.filter(e => e.owner === u.username).length;
+    const isSelf = u.username === currentUser.username;
+    const disableDelete = isSelf ? 'disabled title="Tidak dapat menghapus akun sendiri"' : '';
+    return `<tr>
+      <td class="user-name">${escapeHtml(u.name)}</td>
+      <td class="user-uname">${escapeHtml(u.username)}</td>
+      <td><span class="role-badge role-${u.role}">${u.role === 'superadmin' ? 'Super Admin' : 'Admin'}</span></td>
+      <td class="user-count">${count}</td>
+      <td><button class="btn-icon-danger" data-username="${escapeHtml(u.username)}" ${disableDelete}>Hapus</button></td>
+    </tr>`;
+  }).join('');
+  body.querySelectorAll('.btn-icon-danger').forEach(btn => {
+    btn.addEventListener('click', () => deleteUser(btn.dataset.username));
+  });
+}
+
+async function addUser(){
+  const name = document.getElementById('nu_name').value.trim();
+  const username = document.getElementById('nu_username').value.trim();
+  const password = document.getElementById('nu_password').value;
+  const role = document.getElementById('nu_role').value;
+  const errEl = document.getElementById('addUserError');
+  errEl.style.display = 'none';
+
+  if(!name || !username || !password){
+    errEl.textContent = 'Nama, username, dan password wajib diisi.';
+    errEl.style.display = 'block';
+    return;
+  }
+  if(users.some(u => u.username === username)){
+    errEl.textContent = 'Username tersebut sudah digunakan.';
+    errEl.style.display = 'block';
+    return;
+  }
+  users.push({username, password, name, role});
+  await persistUsers();
+  document.getElementById('nu_name').value = '';
+  document.getElementById('nu_username').value = '';
+  document.getElementById('nu_password').value = '';
+  document.getElementById('nu_role').value = 'admin';
+  renderUserTable();
+  populateAdminFilter();
+}
+
+async function deleteUser(username){
+  if(username === currentUser.username) return;
+  const target = users.find(u => u.username === username);
+  if(!target) return;
+  if(target.role === 'superadmin' && users.filter(u => u.role === 'superadmin').length <= 1){
+    alert('Tidak dapat menghapus satu-satunya akun Super Admin.');
+    return;
+  }
+  if(!confirm('Hapus pengguna "' + target.name + '"? Entri yang sudah dibuat tetap tersimpan di register.')) return;
+  users = users.filter(u => u.username !== username);
+  await persistUsers();
+  renderUserTable();
+  populateAdminFilter();
+  render();
+}
+
+/* ---------- ENTRIES ---------- */
+function setStatus(text, saving){
+  document.getElementById('statusText').textContent = text;
+  document.getElementById('statusPill').classList.toggle('saving', !!saving);
+}
+
+async function loadEntries(){
+  try{
+    const raw = await storageGet(ENTRIES_KEY, true);
+    entries = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    entries = [];
+  }
+  renderUserTable();
+  render();
+}
+
+async function persist(){
+  setStatus('Menyimpan…', true);
+  try{
+    await storageSet(ENTRIES_KEY, JSON.stringify(entries), true);
+    setStatus('Tersimpan', false);
+  }catch(e){
+    setStatus('Gagal menyimpan', true);
+    console.error(e);
+  }
+}
+
+function clearForm(){
+  fields.forEach(f => {
+    if(f === 'klasifikasi'){
+      document.querySelectorAll('#f_klasifikasi input[type=checkbox]').forEach(cb => cb.checked = false);
+      return;
+    }
+    const el = document.getElementById('f_'+f); if(el) el.value = '';
+  });
+  editingId = null;
+  document.getElementById('formTitle').textContent = 'Entri Baru';
+  document.getElementById('formNote').textContent = 'Isi satu proses bisnis per entri. Klik kartu di kanan untuk mengedit entri yang sudah ada.';
+  document.getElementById('cancelBtn').style.display = 'none';
+  document.getElementById('saveBtn').textContent = 'Simpan Entri';
+  document.querySelectorAll('.entry-card').forEach(c => c.classList.remove('editing'));
+}
+
+function canEditEntry(entry){
+  return currentUser.role === 'superadmin' || entry.owner === currentUser.username;
+}
+
+function loadIntoForm(entry){
+  if(!canEditEntry(entry)) return;
+  fields.forEach(f => {
+    if(f === 'klasifikasi'){
+      const selected = Array.isArray(entry.klasifikasi) ? entry.klasifikasi : (entry.klasifikasi ? [entry.klasifikasi] : []);
+      document.querySelectorAll('#f_klasifikasi input[type=checkbox]').forEach(cb => cb.checked = selected.includes(cb.value));
+      return;
+    }
+    const el = document.getElementById('f_'+f); if(el) el.value = entry[f] || '';
+  });
+  editingId = entry.id;
+  document.getElementById('formTitle').textContent = 'Edit Entri';
+  document.getElementById('formNote').textContent = 'Mengedit: ' + (entry.produk || '(tanpa nama)') + ' — ' + (entry.proses || '') + ' · dibuat oleh ' + getUserName(entry.owner);
+  document.getElementById('cancelBtn').style.display = 'block';
+  document.getElementById('saveBtn').textContent = 'Perbarui Entri';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+async function saveEntry(){
+  const produk = document.getElementById('f_produk').value.trim();
+  const proses = document.getElementById('f_proses').value.trim();
+  if(!produk || !proses){
+    alert('Produk / Layanan dan Proses Bisnis wajib diisi.');
+    return;
+  }
+  const data = {};
+  fields.forEach(f => {
+    if(f === 'klasifikasi'){
+      data.klasifikasi = [...document.querySelectorAll('#f_klasifikasi input[type=checkbox]:checked')].map(cb => cb.value);
+      return;
+    }
+    data[f] = document.getElementById('f_'+f).value.trim();
+  });
+  if(data.klasifikasi.length === 0) data.klasifikasi = ['Umum'];
+
+  if(editingId){
+    const idx = entries.findIndex(e => e.id === editingId);
+    if(idx > -1 && canEditEntry(entries[idx])) entries[idx] = {...entries[idx], ...data};
+  } else {
+    entries.push({id: 'e_' + Date.now() + '_' + Math.random().toString(36).slice(2,7), ...data, owner: currentUser.username, createdAt: new Date().toISOString()});
+  }
+  await persist();
+  clearForm();
+  render();
+}
+
+async function deleteEntry(id){
+  const entry = entries.find(e => e.id === id);
+  if(!entry || !canEditEntry(entry)) return;
+  if(!confirm('Hapus entri ini secara permanen?')) return;
+  entries = entries.filter(e => e.id !== id);
+  await persist();
+  if(editingId === id) clearForm();
+  render();
+}
+
+async function seedNow(){
+  entries = seedData.map((d,i) => ({id: 'seed_'+i+'_'+Date.now(), ...d, createdAt: new Date().toISOString()}));
+  await persist();
+  render();
+}
+
+function classBadgeClass(k){
+  if(['Umum','Internal','Spesifik','Rahasia'].includes(k)) return 'class-'+k;
+  return 'class-Umum';
+}
+function klasArray(e){
+  return Array.isArray(e.klasifikasi) ? e.klasifikasi : (e.klasifikasi ? [e.klasifikasi] : ['Umum']);
+}
+function renderBadges(e){
+  return klasArray(e).map(k => `<span class="class-badge ${classBadgeClass(k)}">${escapeHtml(k)}</span>`).join('');
+}
+
+/* entries visible to the current user, respecting role isolation */
+function roleFilteredEntries(){
+  if(!currentUser) return [];
+  if(currentUser.role === 'superadmin'){
+    const adminSel = document.getElementById('filterAdmin').value;
+    if(adminSel) return entries.filter(e => e.owner === adminSel);
+    return entries.slice();
+  }
+  return entries.filter(e => e.owner === currentUser.username);
+}
+
+function populateAdminFilter(){
+  const sel = document.getElementById('filterAdmin');
+  if(currentUser.role !== 'superadmin') return;
+  const current = sel.value;
+  const admins = users.filter(u => u.role === 'admin');
+  sel.innerHTML = '<option value="">Semua Admin</option>' + admins.map(u => `<option value="${escapeHtml(u.username)}">${escapeHtml(u.name)}</option>`).join('');
+  sel.value = current;
+}
+
+function populateProdukFilter(scope){
+  const sel = document.getElementById('filterProduk');
+  const current = sel.value;
+  const produkSet = [...new Set(scope.map(e => e.produk).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Semua Produk</option>' + produkSet.map(p => `<option value="${escapeHtml(p)}">${escapeHtml(p)}</option>`).join('');
+  sel.value = current;
+}
+
+function render(){
+  if(!currentUser) return;
+  const scope = roleFilteredEntries();
+  populateProdukFilter(scope);
+  if(currentUser.role === 'superadmin') populateAdminFilter();
+
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const filterProduk = document.getElementById('filterProduk').value;
+  const filterKlas = document.getElementById('filterKlasifikasi').value;
+
+  const filtered = scope.filter(e => {
+    if(filterProduk && e.produk !== filterProduk) return false;
+    if(filterKlas && !klasArray(e).includes(filterKlas)) return false;
+    if(search){
+      const hay = fields.map(f => e[f]||'').join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('countBadge').textContent = filtered.length + ' dari ' + scope.length + ' entri' + (currentUser.role === 'superadmin' ? ' (seluruh register: ' + entries.length + ')' : '');
+  document.getElementById('seedBanner').style.display = entries.length === 0 ? 'flex' : 'none';
+
+  const list = document.getElementById('entriesList');
+  if(filtered.length === 0){
+    list.innerHTML = `<div class="empty-state">
+      <h3>Tidak ada entri</h3>
+      <p>${entries.length === 0 ? 'Belum ada data discovery yang tercatat. Isi form di kiri untuk menambah entri pertama.' : (scope.length === 0 ? 'Anda belum membuat entri apa pun. Entri yang Anda simpan akan muncul di sini.' : 'Tidak ada entri yang cocok dengan pencarian/filter saat ini.')}</p>
+    </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map((e, i) => {
+    const otherFields = fields.filter(f => !['produk','proses','klasifikasi','jenis'].includes(f));
+    const editable = canEditEntry(e);
+    return `
+    <div class="entry-card" data-id="${e.id}">
+      <div class="entry-top">
+        <div class="entry-titles">
+          <span class="reg-no">No. ${String(i+1).padStart(3,'0')}</span>
+          <div>
+            <p class="entry-product">${escapeHtml(e.produk)}</p>
+            <p class="entry-process">${escapeHtml(e.proses)}</p>
+            ${currentUser.role === 'superadmin' ? `<p class="entry-owner">Dibuat oleh ${escapeHtml(getUserName(e.owner))}</p>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">${renderBadges(e)}</div>
+      </div>
+      <div class="entry-meta">
+        <div class="meta-item"><div class="k">Subjek Data</div><div class="v">${escapeHtml(e.subjek)||'—'}</div></div>
+        <div class="meta-item"><div class="k">Jenis Data</div><div class="v">${escapeHtml(e.jenis)||'—'}</div></div>
+        <div class="meta-item"><div class="k">PIC</div><div class="v">${escapeHtml(e.pic)||'—'}</div></div>
+      </div>
+      <div class="entry-full">
+        ${otherFields.map(f => `<div class="meta-item" style="margin-bottom:8px;"><div class="k">${fieldLabels[f]||f}</div><div class="v">${escapeHtml(e[f])||'—'}</div></div>`).join('')}
+        ${editable ? `<div class="entry-actions">
+          <button class="btn-ghost edit-btn">Edit</button>
+          <button class="btn-danger-outline delete-btn">Hapus</button>
+        </div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.entry-card').forEach(card => {
+    const id = card.dataset.id;
+    card.addEventListener('click', (ev) => {
+      if(ev.target.closest('.edit-btn') || ev.target.closest('.delete-btn')) return;
+      card.classList.toggle('expanded');
+    });
+    const editBtn = card.querySelector('.edit-btn');
+    if(editBtn) editBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const entry = entries.find(x => x.id === id);
+      loadIntoForm(entry);
+      document.querySelectorAll('.entry-card').forEach(c => c.classList.remove('editing'));
+      card.classList.add('editing');
+    });
+    const delBtn = card.querySelector('.delete-btn');
+    if(delBtn) delBtn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      deleteEntry(id);
+    });
+  });
+}
+
+function toCsvValue(v){
+  const s = (v==null? '' : String(v)).replace(/"/g,'""');
+  return `"${s}"`;
+}
+
+function exportCsv(){
+  const scope = roleFilteredEntries();
+  if(scope.length === 0){ alert('Tidak ada data untuk diekspor.'); return; }
+  const headers = ['No', 'Dibuat Oleh', ...fields.map(f => fieldLabels[f] || f)];
+  const rows = scope.map((e,i) => [i+1, getUserName(e.owner), ...fields.map(f => f === 'klasifikasi' ? klasArray(e).join('; ') : (e[f]||''))]);
+  const csv = [headers, ...rows].map(r => r.map(toCsvValue).join(',')).join('\r\n');
+  downloadBlob(csv, 'data-discovery-ropa.csv', 'text/csv;charset=utf-8;');
+}
+
+function thinBorderAll(rgb){
+  return {top:{style:'thin',color:{rgb}}, bottom:{style:'thin',color:{rgb}}, left:{style:'thin',color:{rgb}}, right:{style:'thin',color:{rgb}}};
+}
+
+function exportExcel(){
+  if(typeof XLSX === 'undefined'){
+    alert('Modul Excel belum termuat (periksa koneksi internet Anda). Silakan coba lagi.');
+    return;
+  }
+  const scope = roleFilteredEntries();
+  if(scope.length === 0){ alert('Tidak ada data untuk diekspor.'); return; }
+
+  const headers = ['No','Produk / Layanan','Proses Bisnis','Kategori Subjek','Jenis Data Pribadi','Klasifikasi','Sumber Data','Dasar Hukum','Penerima / Pihak Ketiga','Lokasi Penyimpanan','Retensi','Alur Data','Tindakan Keamanan','PIC','Dibuat Oleh'];
+  const colCount = headers.length;
+  const colWidths = [6,16,24,17,30,13,22,20,24,18,15,28,24,15,16];
+
+  const filterAdminVal = currentUser.role === 'superadmin' ? document.getElementById('filterAdmin').value : '';
+  const scopeLabel = currentUser.role === 'superadmin'
+    ? (filterAdminVal ? ('Admin: ' + getUserName(filterAdminVal)) : 'Seluruh Admin')
+    : ('Admin: ' + currentUser.name);
+  const today = new Date();
+  const dateLabel = today.toLocaleDateString('id-ID', {day:'2-digit', month:'long', year:'numeric'});
+
+  const aoa = [];
+  aoa.push(['DATA DISCOVERY — ROPA REGISTER']);
+  aoa.push(['Diekspor oleh ' + currentUser.name + ' (' + (currentUser.role === 'superadmin' ? 'Super Admin' : 'Admin') + ') · ' + scopeLabel + ' · ' + dateLabel]);
+  aoa.push([]);
+  aoa.push(headers);
+  scope.forEach((e,i) => {
+    aoa.push([
+      i+1, e.produk||'', e.proses||'', e.subjek||'', e.jenis||'',
+      klasArray(e).join(', '), e.sumber||'', e.hukum||'', e.penerima||'',
+      e.lokasi||'', e.retensi||'', e.alur||'', e.keamanan||'', e.pic||'',
+      getUserName(e.owner)
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  const headerRow = 3;
+  const firstDataRow = 4;
+  const lastDataRow = firstDataRow + scope.length - 1;
+
+  ws['!merges'] = [
+    {s:{r:0,c:0}, e:{r:0,c:colCount-1}},
+    {s:{r:1,c:0}, e:{r:1,c:colCount-1}}
+  ];
+  ws['!cols'] = colWidths.map(w => ({wch:w}));
+  ws['!rows'] = [{hpt:26},{hpt:16},{hpt:6},{hpt:22}];
+
+  const titleCell = ws[XLSX.utils.encode_cell({r:0,c:0})];
+  if(titleCell) titleCell.s = {font:{name:'Calibri',sz:14,bold:true,color:{rgb:'FF142A37'}}, alignment:{vertical:'center'}};
+  const subCell = ws[XLSX.utils.encode_cell({r:1,c:0})];
+  if(subCell) subCell.s = {font:{name:'Calibri',sz:10,italic:true,color:{rgb:'FF5A6472'}}, alignment:{vertical:'center'}};
+
+  const headerStyle = {
+    font:{name:'Calibri',sz:11,bold:true,color:{rgb:'FFFFFFFF'}},
+    fill:{fgColor:{rgb:'FF1E3A4C'}},
+    alignment:{vertical:'center',horizontal:'center',wrapText:true},
+    border:thinBorderAll('FF0F2530')
+  };
+  for(let c=0;c<colCount;c++){
+    const ref = XLSX.utils.encode_cell({r:headerRow,c});
+    if(!ws[ref]) ws[ref] = {t:'s', v:headers[c]};
+    ws[ref].s = headerStyle;
+  }
+
+  const klasFillMap = {
+    'Rahasia': {fg:'FFF5E6E3', text:'FFA3403F'},
+    'Spesifik': {fg:'FFF6ECDC', text:'FFB3792C'},
+    'Internal': {fg:'FFE4EFEC', text:'FF3C7A72'},
+    'Umum': {fg:'FFE9EDF0', text:'FF5B6773'}
+  };
+  const priority = ['Rahasia','Spesifik','Internal','Umum'];
+
+  scope.forEach((e,i) => {
+    const r = firstDataRow + i;
+    const zebra = i % 2 === 1;
+    for(let c=0;c<colCount;c++){
+      const ref = XLSX.utils.encode_cell({r,c});
+      if(!ws[ref]) ws[ref] = {t:'s', v:''};
+      const baseStyle = {
+        font:{name:'Calibri',sz:10.5,color:{rgb:'FF1B2430'}},
+        alignment:{vertical:'top', wrapText:true, horizontal: c===0 ? 'center' : 'left'},
+        border:thinBorderAll('FFDCD8CF')
+      };
+      if(zebra) baseStyle.fill = {fgColor:{rgb:'FFF6F5F1'}};
+      if(c === 5){
+        const klas = klasArray(e);
+        const top = priority.find(p => klas.includes(p)) || 'Umum';
+        const colors = klasFillMap[top];
+        baseStyle.fill = {fgColor:{rgb:colors.fg}};
+        baseStyle.font = {name:'Calibri',sz:10.5,bold:true,color:{rgb:colors.text}};
+        baseStyle.alignment.horizontal = 'center';
+      }
+      ws[ref].s = baseStyle;
+    }
+  });
+
+  ws['!autofilter'] = {ref: XLSX.utils.encode_range({s:{r:headerRow,c:0}, e:{r:lastDataRow,c:colCount-1}})};
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'ROPA Register');
+
+  const fnameScope = currentUser.role === 'superadmin' ? (filterAdminVal || 'semua-admin') : currentUser.username;
+  const fname = 'data-discovery-ropa_' + fnameScope + '_' + today.toISOString().slice(0,10) + '.xlsx';
+  XLSX.writeFile(wb, fname);
+}
+
+function exportJson(){
+  const scope = roleFilteredEntries();
+  if(scope.length === 0){ alert('Tidak ada data untuk diekspor.'); return; }
+  downloadBlob(JSON.stringify(scope, null, 2), 'data-discovery-ropa.json', 'application/json');
+}
+
+function downloadBlob(content, filename, type){
+  const blob = new Blob([content], {type});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ---------- WIRE UP ---------- */
+document.getElementById('loginBtn').addEventListener('click', attemptLogin);
+document.getElementById('loginPass').addEventListener('keydown', (e) => { if(e.key === 'Enter') attemptLogin(); });
+document.getElementById('loginUser').addEventListener('keydown', (e) => { if(e.key === 'Enter') attemptLogin(); });
+document.getElementById('logoutBtn').addEventListener('click', logout);
+
+document.getElementById('usermgmtToggle').addEventListener('click', () => {
+  document.getElementById('usermgmtToggle').classList.toggle('open');
+  document.getElementById('usermgmtPanel').classList.toggle('open');
+});
+document.getElementById('addUserBtn').addEventListener('click', addUser);
+
+document.getElementById('saveBtn').addEventListener('click', saveEntry);
+document.getElementById('cancelBtn').addEventListener('click', clearForm);
+document.getElementById('seedBtn').addEventListener('click', seedNow);
+document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+document.getElementById('exportCsvBtn').addEventListener('click', exportCsv);
+document.getElementById('exportJsonBtn').addEventListener('click', exportJson);
+document.getElementById('searchInput').addEventListener('input', render);
+document.getElementById('filterProduk').addEventListener('change', render);
+document.getElementById('filterKlasifikasi').addEventListener('change', render);
+document.getElementById('filterAdmin').addEventListener('change', render);
+
+(async function init(){
+  document.getElementById('loginFootnote').style.display = 'block';
+  await loadUsers();
+})();
+</script>
+</body>
+</html>
