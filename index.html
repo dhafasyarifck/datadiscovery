@@ -451,17 +451,26 @@ button:active{filter:brightness(0.88);transform:translateY(1px);}
 
         <div class="field">
           <label>Produk / Layanan <span class="req">*</span></label>
-          <input type="text" id="f_produk" placeholder="mis. Odeva CXM">
+          <select id="f_produk">
+            <option value="">— Pilih Produk —</option>
+            <option>OPA</option>
+            <option>GSS Enterprise</option>
+            <option>AMMAN Safety</option>
+            <option>Dfit Inde</option>
+            <option>Dfit Asto</option>
+            <option>Odeva CXM</option>
+          </select>
         </div>
         <div class="field">
           <label>Proses Bisnis (Tujuan) <span class="req">*</span></label>
           <input type="text" id="f_proses" placeholder="mis. Analisis Sentimen Percakapan">
         </div>
         <div class="field">
-          <label>Kategori Subjek Data</label>
+          <label>Kategori Subjek Data <span class="req">*</span></label>
           <select id="f_subjek">
             <option value="">— Pilih —</option>
-            <option>Karyawan</option>
+            <option>Karyawan Goodeva</option>
+            <option>Operator / Karyawan Klien atau Customer</option>
             <option>Pelanggan (Customer)</option>
             <option>Vendor</option>
             <option>Pengguna Aplikasi (User)</option>
@@ -469,11 +478,11 @@ button:active{filter:brightness(0.88);transform:translateY(1px);}
           </select>
         </div>
         <div class="field">
-          <label>Jenis Data Pribadi</label>
+          <label>Jenis Data Pribadi <span class="req">*</span></label>
           <textarea id="f_jenis" placeholder="mis. Nama, No. WhatsApp, Isi Pesan, Skor Sentimen"></textarea>
         </div>
         <div class="field">
-          <label>Klasifikasi Data <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(boleh lebih dari satu)</span></label>
+          <label>Klasifikasi Data <span class="req">*</span> <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(boleh lebih dari satu)</span></label>
           <div class="klas-checks" id="f_klasifikasi">
             <label class="klas-check"><input type="checkbox" value="Umum"> Umum</label>
             <label class="klas-check"><input type="checkbox" value="Internal"> Internal</label>
@@ -482,35 +491,35 @@ button:active{filter:brightness(0.88);transform:translateY(1px);}
           </div>
         </div>
         <div class="field">
-          <label>Sumber Data</label>
+          <label>Sumber Data <span class="req">*</span></label>
           <textarea id="f_sumber" placeholder="Asal data — API, input manual, sensor, dll"></textarea>
         </div>
         <div class="field">
-          <label>Dasar Hukum Pemrosesan</label>
+          <label>Dasar Hukum Pemrosesan <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(opsional, isi jika sudah diketahui)</span></label>
           <textarea id="f_hukum" placeholder="mis. Persetujuan, Pelaksanaan Kontrak, Kewajiban Hukum"></textarea>
         </div>
         <div class="field">
-          <label>Penerima / Pihak Ketiga</label>
+          <label>Penerima / Pihak Ketiga <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(opsional)</span></label>
           <textarea id="f_penerima" placeholder="Sub-prosesor, vendor, sistem internal terkait"></textarea>
         </div>
         <div class="field">
-          <label>Lokasi Penyimpanan</label>
+          <label>Lokasi Penyimpanan <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(opsional, isi jika sudah diketahui)</span></label>
           <input type="text" id="f_lokasi" placeholder="mis. Cloud Data Center - Jakarta">
         </div>
         <div class="field">
-          <label>Retensi Data</label>
+          <label>Retensi Data <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(opsional, isi jika sudah diketahui)</span></label>
           <input type="text" id="f_retensi" placeholder="mis. 2 Tahun sejak interaksi berakhir">
         </div>
         <div class="field">
-          <label>Alur Data / Flow Mapping</label>
+          <label>Alur Data / Flow Mapping <span class="req">*</span></label>
           <textarea id="f_alur" placeholder="Ringkas: Sumber -> Sistem -> Penyimpanan -> Output"></textarea>
         </div>
         <div class="field">
-          <label>Tindakan Keamanan</label>
+          <label>Tindakan Keamanan <span class="req">*</span></label>
           <textarea id="f_keamanan" placeholder="mis. Enkripsi TLS, RBAC, Audit Log"></textarea>
         </div>
         <div class="field">
-          <label>PIC (Data Owner)</label>
+          <label>PIC (Data Owner) <span style="text-transform:none;font-weight:400;color:var(--ink-soft);">(opsional)</span></label>
           <input type="text" id="f_pic" placeholder="mis. PIC Odeva CXM">
         </div>
 
@@ -813,19 +822,33 @@ function loadIntoForm(entry){
 async function saveEntry(){
   const produk = document.getElementById('f_produk').value.trim();
   const proses = document.getElementById('f_proses').value.trim();
-  if(!produk || !proses){
-    alert('Produk / Layanan dan Proses Bisnis wajib diisi.');
+  const subjek = document.getElementById('f_subjek').value.trim();
+  const jenis = document.getElementById('f_jenis').value.trim();
+  const sumber = document.getElementById('f_sumber').value.trim();
+  const alur = document.getElementById('f_alur').value.trim();
+  const keamanan = document.getElementById('f_keamanan').value.trim();
+  const klasifikasi = [...document.querySelectorAll('#f_klasifikasi input[type=checkbox]:checked')].map(cb => cb.value);
+
+  const missing = [];
+  if(!produk) missing.push('Produk / Layanan');
+  if(!proses) missing.push('Proses Bisnis');
+  if(!subjek) missing.push('Kategori Subjek Data');
+  if(!jenis) missing.push('Jenis Data Pribadi');
+  if(klasifikasi.length === 0) missing.push('Klasifikasi Data');
+  if(!sumber) missing.push('Sumber Data');
+  if(!alur) missing.push('Alur Data');
+  if(!keamanan) missing.push('Tindakan Keamanan');
+
+  if(missing.length > 0){
+    alert('Mohon lengkapi field wajib berikut:\n\n' + missing.map(m => '• ' + m).join('\n'));
     return;
   }
+
   const data = {};
   fields.forEach(f => {
-    if(f === 'klasifikasi'){
-      data.klasifikasi = [...document.querySelectorAll('#f_klasifikasi input[type=checkbox]:checked')].map(cb => cb.value);
-      return;
-    }
+    if(f === 'klasifikasi'){ data.klasifikasi = klasifikasi; return; }
     data[f] = document.getElementById('f_'+f).value.trim();
   });
-  if(data.klasifikasi.length === 0) data.klasifikasi = ['Umum'];
 
   if(editingId){
     const idx = entries.findIndex(e => e.id === editingId);
