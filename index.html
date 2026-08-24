@@ -196,20 +196,44 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   color:var(--navy);margin:0 0 12px;
 }
 
-/* layout */
-.grid{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;}
-@media (max-width:920px){.grid{grid-template-columns:1fr;}}
+/* layout — full width list */
+.grid{display:block;}
 
-/* form panel */
-.panel{
-  background:var(--panel);border:1px solid var(--line);border-radius:4px;
-  padding:22px;position:sticky;top:20px;box-shadow:var(--shadow);
+/* side peek overlay */
+.peek-overlay{
+  display:none;position:fixed;inset:0;background:rgba(20,42,55,.35);z-index:200;
+  backdrop-filter:blur(2px);
 }
+.peek-overlay.open{display:block;}
+
+/* side peek drawer */
+.panel{
+  position:fixed;top:0;right:0;bottom:0;width:440px;max-width:100vw;
+  background:var(--panel);border-left:1px solid var(--line);
+  box-shadow:-4px 0 24px rgba(20,42,55,.12);
+  z-index:201;overflow-y:auto;
+  transform:translateX(100%);
+  transition:transform .22s cubic-bezier(.4,0,.2,1);
+  padding:0;
+}
+.panel.open{transform:translateX(0);}
+.panel-header{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+  padding:20px 22px 16px;border-bottom:1px solid var(--line);
+  position:sticky;top:0;background:var(--panel);z-index:1;
+}
+.panel-header-titles{}
 .panel h2{
   font-size:13px;text-transform:uppercase;letter-spacing:.08em;
-  font-family:'IBM Plex Mono',monospace;color:var(--navy);margin:0 0 4px;
+  font-family:'IBM Plex Mono',monospace;color:var(--navy);margin:0 0 3px;
 }
-.panel .panel-note{font-size:12px;color:var(--ink-soft);margin:0 0 18px;line-height:1.5;}
+.panel .panel-note{font-size:12px;color:var(--ink-soft);margin:0;line-height:1.5;}
+.panel-close{
+  flex:0 0 auto;background:transparent;border:1px solid var(--line);color:var(--ink-soft);
+  padding:5px 10px;font-size:13px;border-radius:3px;margin-top:0;
+}
+.panel-close:hover{border-color:var(--navy);color:var(--navy);}
+.panel-body{padding:18px 22px 32px;}
 .field{margin-bottom:14px;}
 .field label{
   display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);
@@ -257,6 +281,7 @@ button:active{filter:brightness(0.88);transform:translateY(1px);}
 .toolbar{
   display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;
 }
+.btn-new{background:var(--navy);color:#fff;padding:9px 16px;font-size:13px;white-space:nowrap;}
 .toolbar input[type=search]{
   flex:1;min-width:180px;border:1px solid var(--line);border-radius:3px;
   padding:9px 12px;font-size:13.5px;background:var(--panel);
@@ -443,12 +468,19 @@ button:active{filter:brightness(0.88);transform:translateY(1px);}
       </div>
     </div>
 
-    <div class="grid">
-      <!-- FORM PANEL -->
-      <div class="panel">
-        <h2 id="formTitle">Entri Baru</h2>
-        <p class="panel-note" id="formNote">Isi satu proses bisnis per entri. Klik kartu di kanan untuk mengedit entri yang sudah ada.</p>
+    <!-- SIDE PEEK OVERLAY -->
+    <div class="peek-overlay" id="peekOverlay"></div>
 
+    <!-- SIDE PEEK DRAWER (FORM) -->
+    <div class="panel" id="formPanel">
+      <div class="panel-header">
+        <div class="panel-header-titles">
+          <h2 id="formTitle">Entri Baru</h2>
+          <p class="panel-note" id="formNote">Isi satu proses bisnis per entri.</p>
+        </div>
+        <button class="panel-close" id="panelCloseBtn">✕ Tutup</button>
+      </div>
+      <div class="panel-body">
         <div class="field">
           <label>Produk / Layanan <span class="req">*</span></label>
           <select id="f_produk">
@@ -525,35 +557,36 @@ button:active{filter:brightness(0.88);transform:translateY(1px);}
 
         <div class="btn-row">
           <button class="btn-primary" id="saveBtn">Simpan Entri</button>
-          <button class="btn-ghost" id="cancelBtn" style="display:none;">Batal</button>
+          <button class="btn-ghost" id="cancelBtn">Batal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- FULL WIDTH LIST -->
+    <div>
+      <div class="seed-banner" id="seedBanner" style="display:none;">
+        <span>Belum ada data tersimpan. Muat 7 entri contoh dari Odeva CXM untuk mulai?</span>
+        <button id="seedBtn">Muat Data Contoh</button>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn-new" id="newEntryBtn">+ Entri Baru</button>
+        <input type="search" id="searchInput" placeholder="Cari produk, proses, PIC...">
+        <select id="filterProduk"><option value="">Semua Produk</option></select>
+        <select id="filterKlasifikasi">
+          <option value="">Semua Klasifikasi</option>
+          <option>Umum</option><option>Internal</option><option>Spesifik</option><option>Rahasia</option>
+        </select>
+        <select id="filterAdmin" style="display:none;"><option value="">Semua Admin</option></select>
+        <span class="count-badge" id="countBadge">0 entri</span>
+        <div class="export-group">
+          <button class="btn-excel" id="exportExcelBtn">Ekspor Excel</button>
+          <button class="btn-ghost" id="exportCsvBtn">Ekspor CSV</button>
+          <button class="btn-ghost" id="exportJsonBtn">Ekspor JSON</button>
         </div>
       </div>
 
-      <!-- LIST PANEL -->
-      <div>
-        <div class="seed-banner" id="seedBanner" style="display:none;">
-          <span>Belum ada data tersimpan. Muat 7 entri contoh dari Odeva CXM untuk mulai?</span>
-          <button id="seedBtn">Muat Data Contoh</button>
-        </div>
-
-        <div class="toolbar">
-          <input type="search" id="searchInput" placeholder="Cari produk, proses, PIC...">
-          <select id="filterProduk"><option value="">Semua Produk</option></select>
-          <select id="filterKlasifikasi">
-            <option value="">Semua Klasifikasi</option>
-            <option>Umum</option><option>Internal</option><option>Spesifik</option><option>Rahasia</option>
-          </select>
-          <select id="filterAdmin" style="display:none;"><option value="">Semua Admin</option></select>
-          <span class="count-badge" id="countBadge">0 entri</span>
-          <div class="export-group">
-            <button class="btn-excel" id="exportExcelBtn">Ekspor Excel</button>
-            <button class="btn-ghost" id="exportCsvBtn">Ekspor CSV</button>
-            <button class="btn-ghost" id="exportJsonBtn">Ekspor JSON</button>
-          </div>
-        </div>
-
-        <div class="entries" id="entriesList"></div>
-      </div>
+      <div class="entries" id="entriesList"></div>
     </div>
 
     <p class="footer-note">DATA DISCOVERY REGISTER · disimpan permanen di penyimpanan akun Anda · akses dipisah per peran (admin hanya melihat entrinya sendiri, super admin melihat seluruh register)</p>
@@ -781,6 +814,16 @@ async function persist(){
   }
 }
 
+function openPeek(){
+  document.getElementById('formPanel').classList.add('open');
+  document.getElementById('peekOverlay').classList.add('open');
+}
+
+function closePeek(){
+  document.getElementById('formPanel').classList.remove('open');
+  document.getElementById('peekOverlay').classList.remove('open');
+}
+
 function clearForm(){
   fields.forEach(f => {
     if(f === 'klasifikasi'){
@@ -792,9 +835,9 @@ function clearForm(){
   editingId = null;
   document.getElementById('formTitle').textContent = 'Entri Baru';
   document.getElementById('formNote').textContent = 'Isi satu proses bisnis per entri. Klik kartu di kanan untuk mengedit entri yang sudah ada.';
-  document.getElementById('cancelBtn').style.display = 'none';
   document.getElementById('saveBtn').textContent = 'Simpan Entri';
   document.querySelectorAll('.entry-card').forEach(c => c.classList.remove('editing'));
+  closePeek();
 }
 
 function canEditEntry(entry){
@@ -814,9 +857,8 @@ function loadIntoForm(entry){
   editingId = entry.id;
   document.getElementById('formTitle').textContent = 'Edit Entri';
   document.getElementById('formNote').textContent = 'Mengedit: ' + (entry.produk || '(tanpa nama)') + ' — ' + (entry.proses || '') + ' · dibuat oleh ' + getUserName(entry.owner);
-  document.getElementById('cancelBtn').style.display = 'block';
   document.getElementById('saveBtn').textContent = 'Perbarui Entri';
-  window.scrollTo({top:0, behavior:'smooth'});
+  openPeek();
 }
 
 async function saveEntry(){
@@ -858,6 +900,7 @@ async function saveEntry(){
   }
   await persist();
   clearForm();
+  closePeek();
   render();
 }
 
@@ -1150,6 +1193,14 @@ document.getElementById('usermgmtToggle').addEventListener('click', () => {
 });
 document.getElementById('addUserBtn').addEventListener('click', addUser);
 
+document.getElementById('newEntryBtn').addEventListener('click', () => {
+  clearForm();
+  document.getElementById('formTitle').textContent = 'Entri Baru';
+  document.getElementById('formNote').textContent = 'Isi satu proses bisnis per entri.';
+  openPeek();
+});
+document.getElementById('panelCloseBtn').addEventListener('click', clearForm);
+document.getElementById('peekOverlay').addEventListener('click', clearForm);
 document.getElementById('saveBtn').addEventListener('click', saveEntry);
 document.getElementById('cancelBtn').addEventListener('click', clearForm);
 document.getElementById('seedBtn').addEventListener('click', seedNow);
